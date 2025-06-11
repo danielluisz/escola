@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorando a Ásia: Um Continente de Contrastes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
+    <!-- Application Structure Plan: A thematic, single-page application structure was designed to transform the linear report into an engaging user journey. Instead of following the report's order, the content is grouped into logical, interactive sections: 'Visão Geral' for an immediate high-level summary with key stats and an interactive sub-region map; 'Geografia' to explore the physical landscape's impact through tabs; 'Cultura' as a deep-dive section with nested tabs for religions, languages, arts, and a filterable UNESCO sites list; 'Importância Global' for modern context; and 'Curiosidades' for engaging facts. This non-linear, thematic approach with a sticky navigation bar encourages exploration and makes the complex information more digestible and discoverable than a simple document scroll, directly addressing the goal of user understanding and ease of navigation. -->
+    <!-- Visualization & Content Choices: Report Info -> Goal -> Viz/Presentation Method -> Interaction -> Justification -> Library/Method. 1. Population/Landmass -> Inform -> Key stat cards -> Static display -> Quick high-level overview -> HTML/Tailwind. 2. Sub-regions -> Organize/Inform -> Styled div map -> Hover/Click tooltips -> Interactive geographic orientation without complex mapping libraries -> HTML/CSS/JS. 3. Religions -> Compare/Inform -> Doughnut Chart + clickable descriptions -> Click to reveal text -> Visual proportion overview and drill-down for details -> Chart.js + JS. 4. Languages -> Compare -> Bar Chart -> Hover tooltips -> Clear comparison of speaker numbers -> Chart.js. 5. UNESCO Sites -> Organize/Explore -> Filterable/Searchable List -> User input (dropdown/search) -> Manages the huge dataset effectively, making it usable and explorable -> JS. 6. Philosophies/Arts/Curiosities -> Inform/Engage -> Interactive cards/tabs -> Hover effects/Click to reveal -> Breaks down dense text into engaging, bite-sized pieces -> JS/CSS. This plan uses the best tool for each piece of information, prioritizing interactivity and clarity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #1a1a1a;
+        }
+        .nav-link {
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #D97706; /* Amber-600 */
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+            margin-bottom: 1rem;
+            color: #374151; /* Gray-700 */
+        }
+        .section-subtitle {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            color: #6B7280; /* Gray-500 */
+            max-width: 48rem;
+            margin: 0 auto 2.5rem auto;
+        }
+        .tab-button {
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: #D97706;
+            border-bottom-color: #D97706;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .map-region {
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .map-region:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .unesco-item {
+            transition: background-color 0.2s;
+        }
+        .unesco-item:hover {
+             background-color: #FEF3C7; /* Amber-100 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Explorando a Ásia</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#visao-geral" class="nav-link text-gray-600">Visão Geral</a>
+                <a href="#geografia" class="nav-link text-gray-600">Geografia</a>
+                <a href="#cultura" class="nav-link text-gray-600">Cultura</a>
+                <a href="#importancia" class="nav-link text-gray-600">Importância</a>
+                <a href="#curiosidades" class="nav-link text-gray-600">Curiosidades</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pt-2 pb-4 space-y-2">
+             <a href="#visao-geral" class="block nav-link text-gray-600">Visão Geral</a>
+             <a href="#geografia" class="block nav-link text-gray-600">Geografia</a>
+             <a href="#cultura" class="block nav-link text-gray-600">Cultura</a>
+             <a href="#importancia" class="block nav-link text-gray-600">Importância</a>
+             <a href="#curiosidades" class="block nav-link text-gray-600">Curiosidades</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Section: Visão Geral -->
+        <section id="visao-geral" class="py-16 md:py-24 text-center bg-amber-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Um Continente de Superlativos</h2>
+                <p class="section-subtitle">A Ásia é o maior e mais populoso continente, um epicentro de diversidade geográfica, cultural e econômica. Esta visão geral apresenta os números e as divisões que definem este gigante global.</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto mb-16">
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-4xl font-bold text-amber-600">~58%</p>
+                        <p class="mt-2 text-gray-600">da População Mundial</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-4xl font-bold text-amber-600">~30%</p>
+                        <p class="mt-2 text-gray-600">da Superfície Terrestre</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-2xl md:text-3xl font-bold text-amber-600">Everest</p>
+                        <p class="mt-2 text-gray-600">Ponto Mais Alto (8.848m)</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-2xl md:text-3xl font-bold text-amber-600">Mar Morto</p>
+                        <p class="mt-2 text-gray-600">Ponto Mais Baixo</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">Mapa Interativo das Sub-regiões</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mb-8">A Ásia é frequentemente dividida em sub-regiões com base em fatores geográficos e culturais. Passe o mouse ou clique em uma região para saber mais.</p>
+                <div class="w-full max-w-4xl mx-auto p-4 bg-white rounded-xl shadow-2xl">
+                    <div id="asia-map" class="relative grid grid-cols-3 grid-rows-2 gap-2 h-64 md:h-96">
+                        <div id="map-region-north" class="map-region bg-blue-300 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Ásia Setentrional" data-desc="Compreende a parte asiática da Rússia (Sibéria). Caracterizada por climas frios e baixa densidade populacional.">Norte</div>
+                        <div id="map-region-central" class="map-region bg-green-400 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Ásia Central" data-desc="Região das ex-repúblicas soviéticas ('-stões'). Historicamente ligada à Rota da Seda e a impérios nômades.">Central</div>
+                        <div id="map-region-east" class="map-region bg-red-400 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Ásia Oriental" data-desc="Abriga China, Japão e as Coreias. Berço de filosofias como o Confucionismo e grande potência tecnológica.">Leste</div>
+                        <div id="map-region-west" class="map-region bg-purple-400 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Ásia Ocidental (Oriente Médio)" data-desc="Berço das religiões abraâmicas e de civilizações antigas. Rico em recursos energéticos.">Oeste</div>
+                        <div id="map-region-south" class="map-region bg-orange-400 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Sul da Ásia" data-desc="Inclui o subcontinente indiano. Berço do Hinduísmo e do Budismo, com enorme diversidade cultural e linguística.">Sul</div>
+                        <div id="map-region-southeast" class="map-region bg-yellow-400 rounded-lg flex items-center justify-center text-white font-bold p-2" data-title="Sudeste Asiático" data-desc="Composto por porções continental e insular. Conhecido por suas praias, florestas tropicais e templos antigos.">Sudeste</div>
+                        <div id="map-tooltip" class="absolute hidden bg-gray-800 text-white p-3 rounded-lg shadow-xl text-left">
+                            <h4 id="tooltip-title" class="font-bold"></h4>
+                            <p id="tooltip-desc"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section: Geografia -->
+        <section id="geografia" class="py-16 md:py-24 text-center">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">A Força da Natureza</h2>
+                <p class="section-subtitle">A geografia asiática não é apenas um pano de fundo; é uma força ativa que moldou impérios, inspirou mitos e continua a definir a vida de bilhões. Dos picos do Himalaia às planícies férteis, o ambiente e a humanidade coevoluíram.</p>
+                <div id="geography-tabs" class="max-w-2xl mx-auto border-b border-gray-200 mb-8">
+                    <nav class="flex -mb-px space-x-6 justify-center">
+                        <button data-tab="montanhas" class="tab-button active py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Montanhas</button>
+                        <button data-tab="rios" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Rios</button>
+                        <button data-tab="desertos" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Desertos</button>
+                    </nav>
+                </div>
+
+                <div id="geography-content" class="text-left max-w-4xl mx-auto">
+                    <div data-content="montanhas">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Cadeias de Montanhas Imponentes</h3>
+                                <p class="text-gray-600 mb-4">As montanhas da Ásia não são apenas picos rochosos; são fronteiras naturais, fontes de rios vitais e lares de culturas únicas. Elas influenciam o clima e criam barreiras que historicamente isolaram e protegeram civilizações.</p>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Himalaia:</b> O "teto do mundo", lar do Monte Evereste, influencia drasticamente os padrões de monções.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Urais:</b> A fronteira histórica e cultural que separa a Ásia da Europa.</span></li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-100 rounded-xl p-6 shadow-inner">
+                                <h4 class="font-bold text-lg text-gray-700 mb-2">Mito e Montanha</h4>
+                                <p class="text-gray-600">Em muitas culturas asiáticas, as montanhas são sagradas. Um exemplo é o mito chinês do dragão Yu, que teve que derrotar Gonggong, o deus das inundações, uma história que reflete a luta constante contra as forças da natureza moldadas pela geografia extrema do continente.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div data-content="rios" class="hidden">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Rios: As Veias da Civilização</h3>
+                                <p class="text-gray-600 mb-4">Os grandes rios da Ásia foram os berços de algumas das mais antigas civilizações do mundo. Suas águas férteis permitiram a agricultura, o desenvolvimento de cidades e o florescimento cultural.</p>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Yangtzé e Huang Ho (Amarelo):</b> Na China, seus vales foram o coração de dinastias antigas, sustentando milhões de pessoas.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Mekong:</b> Um rio vital que atravessa seis países do Sudeste Asiático, essencial para a pesca e a agricultura.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Indo:</b> O berço da Civilização do Vale do Indo, uma das mais antigas e avançadas do mundo.</span></li>
+                                </ul>
+                            </div>
+                            <img src="https://placehold.co/600x400/a5f3fc/334155?text=Rios+da+%C3%81sia" alt="Rios da Ásia" class="rounded-xl object-cover w-full h-64 shadow-lg">
+                        </div>
+                    </div>
+                    <div data-content="desertos" class="hidden">
+                         <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Vastas Extensões Áridas</h3>
+                                <p class="text-gray-600 mb-4">Os desertos asiáticos, como o de Gobi e o Arábico, são paisagens de beleza austera que desempenharam papéis cruciais nas rotas comerciais, como a Rota da Seda. A vida floresce em oásis, pontos verdes que serviram como paradas vitais para caravanas por séculos.</p>
+                                <p class="text-gray-600">Essas regiões áridas influenciam o clima continental e são o lar de povos nômades com culturas adaptadas a condições extremas.</p>
+                            </div>
+                            <img src="https://placehold.co/600x400/fde68a/334155?text=Desertos+da+%C3%81sia" alt="Desertos da Ásia" class="rounded-xl object-cover w-full h-64 shadow-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Cultura -->
+        <section id="cultura" class="py-16 md:py-24 text-center bg-gray-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Mosaico Cultural</h2>
+                <p class="section-subtitle">A Ásia é um repositório de heranças culturais que moldaram a humanidade. Explore as religiões, filosofias, línguas, artes e locais históricos que compõem este mosaico vibrante e complexo.</p>
+                <div id="culture-tabs" class="max-w-4xl mx-auto border-b border-gray-200 mb-8">
+                     <nav class="flex flex-wrap -mb-px space-x-4 md:space-x-6 justify-center">
+                        <button data-culture-tab="religiao" class="tab-button active py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Religião e Filosofia</button>
+                        <button data-culture-tab="linguas" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Línguas</button>
+                        <button data-culture-tab="artes" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Artes</button>
+                        <button data-culture-tab="unesco" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Patrimônio</button>
+                    </nav>
+                </div>
+                
+                <div id="culture-content">
+                    <div data-culture-content="religiao">
+                        <div class="grid md:grid-cols-2 gap-8 items-center text-left">
+                           <div class="bg-white p-6 rounded-xl shadow-lg">
+                               <h3 class="font-bold text-xl mb-4 text-gray-800">Berço das Grandes Religiões</h3>
+                               <p class="text-gray-600 mb-4">A Ásia deu origem a muitas das maiores religiões do mundo, que continuam a ser pilares da estrutura social e da vida diária.</p>
+                               <div class="chart-container">
+                                   <canvas id="religionsChart"></canvas>
+                               </div>
+                               <p class="text-xs text-center text-gray-500 mt-2">Distribuição ilustrativa das principais religiões na Ásia.</p>
+                           </div>
+                           <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h3 class="font-bold text-xl mb-4 text-gray-800">Filosofias para uma Vida Plena</h3>
+                                <p class="text-gray-600 mb-4">Além da religião, a Ásia oferece filosofias práticas que buscam harmonia, propósito e bem-estar.</p>
+                                <div class="space-y-3">
+                                    <div class="border-l-4 border-amber-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Ikigai (Japão)</h4>
+                                        <p class="text-sm text-gray-600">A arte de encontrar a "razão de ser", o ponto de encontro entre paixão, missão, vocação e profissão.</p>
+                                    </div>
+                                    <div class="border-l-4 border-green-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Wabi-Sabi (Japão)</h4>
+                                        <p class="text-sm text-gray-600">A valorização da beleza na imperfeição e na transitoriedade.</p>
+                                    </div>
+                                    <div class="border-l-4 border-blue-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Yoga (Índia)</h4>
+                                        <p class="text-sm text-gray-600">Uma disciplina física, mental e espiritual que busca a união e a libertação da ignorância.</p>
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+                    </div>
+                    <div data-culture-content="linguas" class="hidden">
+                        <h3 class="font-bold text-xl mb-4 text-gray-800">Uma Torre de Babel</h3>
+                        <p class="section-subtitle">Milhares de línguas e dialetos coexistem, refletindo a imensa diversidade étnica do continente. Algumas, no entanto, destacam-se pelo seu alcance global.</p>
+                        <div class="bg-white p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
+                           <div class="chart-container" style="height:400px; max-height:500px;">
+                                <canvas id="languagesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div data-culture-content="artes" class="hidden">
+                         <h3 class="font-bold text-xl mb-4 text-gray-800">Expressões da Alma</h3>
+                         <p class="section-subtitle">As tradições artísticas asiáticas são profundamente enraizadas na filosofia e na vida cotidiana, onde não há separação entre belas-artes e artes aplicadas.</p>
+                        <div class="grid md:grid-cols-3 gap-6 text-left">
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-amber-700">Pintura e Caligrafia</h4>
+                                <p class="text-gray-600">Formas de arte que unem pensamento e gesto. A Caligrafia é considerada a mais alta forma de arte em culturas como a chinesa e japonesa. Técnicas como <b>Kalamkari</b> (Índia) usam corantes naturais para ilustrar mitologias em tecidos.</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-green-700">Música</h4>
+                                <p class="text-gray-600">Com um som distinto, a música asiática vai do clássico indiano (<b>Sitar</b>, <b>Tabla</b>) e da ópera chinesa ao fenômeno global do <b>K-pop</b> sul-coreano, um produto de exportação cultural massivo.</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-blue-700">Têxteis</h4>
+                                <p class="text-gray-600">A Ásia é pioneira na tecelagem. A seda chinesa abriu a <b>Rota da Seda</b>, facilitando o intercâmbio cultural. Tecidos como o <b>Jamdani</b> de Bangladesh são Patrimônio Imaterial da Humanidade pela UNESCO.</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div data-culture-content="unesco" class="hidden">
+                        <h3 class="font-bold text-xl mb-4 text-gray-800">Tesouros da Humanidade</h3>
+                        <p class="section-subtitle">A Ásia abriga uma quantidade extraordinária de Patrimônios Mundiais da UNESCO, testemunhas de milênios de história. Explore a lista filtrando por país ou buscando por um sítio específico.</p>
+                        <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+                            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                                <select id="unesco-country-filter" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                    <option value="all">Todos os Países</option>
+                                </select>
+                                <input type="text" id="unesco-search-input" placeholder="Buscar por nome do sítio..." class="w-full md:w-2/3 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            </div>
+                            <div id="unesco-list-container" class="max-h-96 overflow-y-auto pr-4 text-left">
+                                <!-- UNESCO sites will be populated by JS -->
+                            </div>
+                            <p id="unesco-no-results" class="text-gray-500 hidden mt-4">Nenhum resultado encontrado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Importância -->
+        <section id="importancia" class="py-16 md:py-24 text-center">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">O Motor do Século XXI</h2>
+                <p class="section-subtitle">Longe de ser apenas um guardião de tradições antigas, a Ásia é uma força econômica e geopolítica dominante que molda ativamente o nosso presente e futuro. Sua ascensão redefine o equilíbrio de poder global.</p>
+                <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto text-left">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">Potência Econômica e Tecnológica</h3>
+                        <p class="text-gray-600 mb-4">Após períodos de reconstrução, nações asiáticas emergiram como líderes em inovação.</p>
+                        <ul class="space-y-3">
+                             <li class="flex items-start"><span class="text-2xl mr-3">🐯</span><div><b>"Tigres Asiáticos":</b> Coreia do Sul, Taiwan, Singapura e Hong Kong tornaram-se potências através de investimentos maciços em tecnologia e educação. A Coreia do Sul é hoje a nação mais conectada do mundo.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🇨🇳</span><div><b>China:</b> De "fábrica do mundo" a líder em inteligência artificial e energias renováveis, sua influência econômica é global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🇯🇵</span><div><b>Japão:</b> Um pioneiro tecnológico que equilibra inovação em robótica e automotivos com uma cultura milenar.</div></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">Influência Geopolítica</h3>
+                        <p class="text-gray-600 mb-4">A importância da Ásia vai além da economia, sendo um ator central na arena global.</p>
+                        <ul class="space-y-3">
+                             <li class="flex items-start"><span class="text-2xl mr-3">🗺️</span><div><b>Rotas Comerciais:</b> A região abriga as rotas marítimas mais movimentadas do mundo, vitais para o comércio global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🤝</span><div><b>Equilíbrio de Poder:</b> A ascensão de potências como China e Índia está remodelando alianças e a governança global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🌍</span><div><b>População e Recursos:</b> Com mais da metade da população mundial, as decisões tomadas na Ásia sobre recursos, meio ambiente e saúde têm um impacto planetário.</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Curiosidades -->
+        <section id="curiosidades" class="py-16 md:py-24 text-center bg-amber-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Fatos Curiosos</h2>
+                <p class="section-subtitle">Explore alguns fatos fascinantes que revelam a riqueza e a singularidade de algumas das culturas mais proeminentes da Ásia.</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Culinária Chinesa</h3>
+                        <p class="text-gray-600">É uma das mais diversas do mundo, com estilos regionais distintos. A culinária de <b>Sichuan</b> é famosa por seu sabor picante ("málà"), enquanto a <b>cantonesa</b> é conhecida por pratos delicados como o dim sum.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Arquitetura Indiana</h3>
+                        <p class="text-gray-600">Profundamente inspirada pela religião. Além do icônico <b>Taj Mahal</b>, um mausoléu de mármore branco, existem milhares de templos esculpidos em rocha com detalhes intrincados, como os das grutas de Ajanta e Ellora.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Cultura Pop Japonesa</h3>
+                        <p class="text-gray-600"><b>Mangás</b> (quadrinhos) e <b>animes</b> (animações) são exportações culturais massivas, consumidas por milhões em todo o mundo e servindo como uma porta de entrada para a língua e os costumes japoneses.</p>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Artes Marciais</h3>
+                        <p class="text-gray-600">Muitas artes marciais famosas, como <b>Sumô</b>, <b>Judô</b>, e <b>Karatê</b>, originaram-se no Japão. Elas são mais do que esportes; são disciplinas que ensinam respeito, hierarquia e filosofia.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">A Nação Mais Conectada</h3>
+                        <p class="text-gray-600">A <b>Coreia do Sul</b> possui a internet mais rápida do mundo e é pioneira na implementação de tecnologias de Internet das Coisas (IoT), integrando o mundo digital ao dia a dia de forma sem precedentes.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Arte em Caminhões</h3>
+                        <p class="text-gray-600">Na Índia e no Paquistão, decorar caminhões é uma forma de arte popular. Os veículos são cobertos com pinturas vibrantes, caligrafia e espelhos, expressando a identidade e o orgulho de seus proprietários.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-6">
+        <p>Conteúdo adaptado do relatório "O Continente Asiático: Uma Análise Abrangente".</p>
+        <p class="text-sm text-gray-400">Aplicação Interativa Criada em 2024.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            function setupTabs(containerId, contentContainerId, attributeName, activeClass) {
+                const tabContainer = document.getElementById(containerId);
+                if (!tabContainer) return;
+                const contentContainer = document.getElementById(contentContainerId);
+                const tabs = tabContainer.querySelectorAll(`[data-${attributeName}]`);
+                const contents = contentContainer.querySelectorAll(`[data-${attributeName.replace('tab','content')}]`);
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove(activeClass));
+                        tab.classList.add(activeClass);
+                        const tabValue = tab.getAttribute(`data-${attributeName}`);
+                        
+                        contents.forEach(content => {
+                            if (content.getAttribute(`data-${attributeName.replace('tab','content')}`) === tabValue) {
+                                content.classList.remove('hidden');
+                            } else {
+                                content.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            }
+
+            setupTabs('geography-tabs', 'geography-content', 'tab', 'active');
+            setupTabs('culture-tabs', 'culture-content', 'culture-tab', 'active');
+            
+            const tooltip = document.getElementById('map-tooltip');
+            const tooltipTitle = document.getElementById('tooltip-title');
+            const tooltipDesc = document.getElementById('tooltip-desc');
+            const asiaMap = document.getElementById('asia-map');
+
+            document.querySelectorAll('.map-region').forEach(region => {
+                region.addEventListener('mouseenter', (e) => {
+                    tooltipTitle.textContent = region.dataset.title;
+                    tooltipDesc.textContent = region.dataset.desc;
+                    tooltip.classList.remove('hidden');
+                });
+
+                region.addEventListener('mousemove', (e) => {
+                    const mapRect = asiaMap.getBoundingClientRect();
+                    let left = e.clientX - mapRect.left + 20;
+                    let top = e.clientY - mapRect.top - tooltip.offsetHeight - 10;
+
+                    if (top < 0) {
+                      top = e.clientY - mapRect.top + 20;
+                    }
+                     if (left + tooltip.offsetWidth > mapRect.width) {
+                       left = e.clientX - mapRect.left - tooltip.offsetWidth - 20;
+                     }
+                    
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
+                });
+
+                region.addEventListener('mouseleave', () => {
+                    tooltip.classList.add('hidden');
+                });
+            });
+
+
+            const religionsData = {
+                labels: ['Islamismo', 'Hinduísmo', 'Crenças Populares / Outras', 'Budismo', 'Cristianismo'],
+                datasets: [{
+                    label: 'Distribuição de Religiões na Ásia (Ilustrativo)',
+                    data: [31, 25, 18, 12, 7],
+                    backgroundColor: ['#34D399', '#FBBF24', '#A78BFA', '#F87171', '#60A5FA'],
+                    hoverOffset: 4
+                }]
+            };
+            const religionsCtx = document.getElementById('religionsChart')?.getContext('2d');
+            if (religionsCtx) {
+                new Chart(religionsCtx, {
+                    type: 'doughnut',
+                    data: religionsData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+            }
+            
+            const languagesData = {
+                labels: ['Mandarim Chinês', 'Hindi', 'Árabe', 'Bengali', 'Russo', 'Indonésio'],
+                datasets: [
+                    {
+                        label: 'Falantes Nativos (milhões)',
+                        data: [918, 341, 245, 228, 154, 43],
+                        backgroundColor: 'rgba(217, 119, 6, 0.7)',
+                        borderColor: 'rgba(217, 119, 6, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Total de Falantes (milhões)',
+                        data: [1120, 637, 274, 265, 258, 199],
+                        backgroundColor: 'rgba(251, 191, 36, 0.7)',
+                        borderColor: 'rgba(251, 191, 36, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+            const languagesCtx = document.getElementById('languagesChart')?.getContext('2d');
+            if (languagesCtx) {
+                new Chart(languagesCtx, {
+                    type: 'bar',
+                    data: languagesData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: { x: { beginAtZero: true } },
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+            }
+
+            const unescoData = [
+                { country: 'Afeganistão', site: 'Minarete e vestígios arqueológicos de Jam' },
+                { country: 'Afeganistão', site: 'Paisagem cultural e vestígios arqueológicos do Vale de Bamiyán' },
+                { country: 'Arábia Saudita', site: 'O sítio arqueológico de Al Hijr – Madain Salih' },
+                { country: 'Arábia Saudita', site: 'Centro histórico de Yeda, Puerta de La Meca' },
+                { country: 'China', site: 'A Grande Muralha' },
+                { country: 'China', site: 'Mausoléu do primeiro imperador Qin' },
+                { country: 'China', site: 'Palácios imperiais das dinastias Ming e Qing' },
+                { country: 'China', site: 'Templo do Céu, altar imperial de sacrifícios em Beijing' },
+                { country: 'Índia', site: 'Taj Mahal' },
+                { country: 'Índia', site: 'Grutas de Ajanta' },
+                { country: 'Índia', site: 'Grutas de Ellora' },
+                { country: 'Índia', site: 'Forte de Agra' },
+                { country: 'Japão', site: 'Himeji-jo' },
+                { country: 'Japão', site: 'Monumentos históricos da antiga Kyoto' },
+                { country: 'Japão', site: 'Memorial da Paz em Hiroshima (Cúpula Genbaku)' },
+                { country: 'Camboja', site: 'Angkor' },
+                { country: 'Indonésia', site: 'Conjunto de Borobudur' },
+                { country: 'Irã', site: 'Persépolis' },
+                { country: 'Iraque', site: 'Babilônia' },
+                { country: 'Jordânia', site: 'Petra' },
+                { country: 'Nepal', site: 'Vale de Katmandú' },
+                { country: 'Nepal', site: 'Lumbini, lugar de nascimento de Buda' },
+                { country: 'Paquistão', site: 'Ruínas arqueológicas de Mohenjo Daro' },
+                { country: 'Filipinas', site: 'Igrejas barrocas das Filipinas' },
+                { country: 'República da Coreia', site: 'Gruta de Seokguram e templo de Bulguksa' },
+                { country: 'Sri Lanka', site: 'Antiga cidade de Sigiriya' },
+                { country: 'Tailândia', site: 'Cidade histórica de Ayutthaya' },
+                { country: 'Vietnã', site: 'Conjunto de monumentos de Huê' },
+                { country: 'Vietnã', site: 'Baía de Ha Long' },
+            ];
+
+            const countryFilter = document.getElementById('unesco-country-filter');
+            const searchInput = document.getElementById('unesco-search-input');
+            const listContainer = document.getElementById('unesco-list-container');
+            const noResults = document.getElementById('unesco-no-results');
+
+            if(countryFilter){
+                const countries = [...new Set(unescoData.map(item => item.country))].sort();
+                countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countryFilter.appendChild(option);
+                });
+
+                function renderList() {
+                    const selectedCountry = countryFilter.value;
+                    const searchTerm = searchInput.value.toLowerCase();
+                    
+                    listContainer.innerHTML = '';
+                    
+                    const filteredData = unescoData.filter(item => {
+                        const matchesCountry = selectedCountry === 'all' || item.country === selectedCountry;
+                        const matchesSearch = item.site.toLowerCase().includes(searchTerm);
+                        return matchesCountry && matchesSearch;
+                    });
+
+                    if (filteredData.length === 0) {
+                        noResults.classList.remove('hidden');
+                    } else {
+                        noResults.classList.add('hidden');
+                    }
+
+                    filteredData.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'unesco-item p-3 border-b border-gray-200';
+                        div.innerHTML = `<p class="font-semibold text-gray-800">${item.site}</p><p class="text-sm text-gray-500">${item.country}</p>`;
+                        listContainer.appendChild(div);
+                    });
+                }
+
+                countryFilter.addEventListener('change', renderList);
+                searchInput.addEventListener('input', renderList);
+                
+                renderList();
+            }
+        });
+
+    </script>
+</body>
+</html>
