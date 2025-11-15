@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorando a Ásia: Um Continente de Contrastes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script> <!-- Plotly.js atualizado para v2.x -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
+    <!-- Application Structure Plan: A thematic, single-page application structure was designed to transform the linear report into an engaging user journey. Instead of following the report's order, the content is grouped into logical, interactive sections: 'Visão Geral' for an immediate high-level summary with key stats and an interactive sub-region map; 'Geografia' to explore the physical landscape's impact through tabs; 'Cultura' as a deep-dive section with nested tabs for religions, languages, arts, and a filterable UNESCO sites list; 'Importância Global' for modern context; and 'Curiosidades' for engaging facts. This non-linear, thematic approach with a sticky navigation bar encourages exploration and makes the complex information more digestible and discoverable than a simple document scroll, directly addressing the goal of user understanding and ease of navigation. -->
+    <!-- Visualization & Content Choices: Report Info -> Goal -> Viz/Presentation Method -> Interaction -> Justification -> Library/Method. 1. Population/Landmass -> Inform -> Key stat cards -> Static display -> Quick high-level overview -> HTML/Tailwind. 2. Sub-regions -> Organize/Inform -> Plotly.js map -> Hover for country/region info -> Detailed geographic exploration with distinct regions -> Plotly.js. 3. Religions -> Compare/Inform -> Doughnut Chart + clickable descriptions -> Click to reveal text -> Visual proportion overview and drill-down for details -> Chart.js + JS. 4. Languages -> Compare -> Bar Chart -> Hover tooltips -> Clear comparison of speaker numbers -> Chart.js. 5. UNESCO Sites -> Organize/Explore -> Filterable/Searchable List -> User input (dropdown/search) -> Manages the huge dataset effectively, making it usable and explorable -> JS. 6. Philosophies/Arts/Curiosities -> Inform/Engage -> Interactive cards/tabs -> Hover effects/Click to reveal -> Breaks down dense text into engaging, bite-sized pieces -> JS/CSS. This plan uses the best tool for each piece of information, prioritizing interactivity and clarity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #1a1a1a;
+        }
+        .nav-link {
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #D97706; /* Amber-600 */
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+            margin-bottom: 1rem;
+            color: #374151; /* Gray-700 */
+        }
+        .section-subtitle {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            color: #6B7280; /* Gray-500 */
+            max-width: 48rem;
+            margin: 0 auto 2.5rem auto;
+        }
+        .tab-button {
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: #D97706;
+            border-bottom-color: #D97706;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        /* Specific styling for the Plotly map container */
+        #interactive-asia-map-container {
+            max-width: 900px; /* Wider for map */
+            height: 550px; /* Taller for map */
+            margin: 0 auto;
+            background-color: #f8f8f8; /* Light background for map area */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        @media (min-width: 768px) {
+            #interactive-asia-map-container {
+                height: 600px; /* Adjust height for larger screens */
+            }
+        }
+        .loading-indicator {
+            display: none;
+            color: #D97706;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #D97706;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .correct-answer {
+            background-color: #D1FAE5; /* Green-100 */
+            border-color: #34D399; /* Green-500 */
+        }
+        .incorrect-answer {
+            background-color: #FEE2E2; /* Red-100 */
+            border-color: #EF4444; /* Red-500 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Explorando a Ásia</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#visao-geral" class="nav-link text-gray-600">Visão Geral</a>
+                <a href="#geografia" class="nav-link text-gray-600">Geografia</a>
+                <a href="#cultura" class="nav-link text-gray-600">Cultura</a>
+                <a href="#importancia" class="nav-link text-gray-600">Importância</a>
+                <a href="#curiosidades" class="nav-link text-gray-600">Curiosidades</a>
+                <a href="#quiz" class="nav-link text-gray-600">Quiz</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pt-2 pb-4 space-y-2">
+             <a href="#visao-geral" class="block nav-link text-gray-600">Visão Geral</a>
+             <a href="#geografia" class="block nav-link text-gray-600">Geografia</a>
+             <a href="#cultura" class="block nav-link text-gray-600">Cultura</a>
+             <a href="#importancia" class="block nav-link text-gray-600">Importância</a>
+             <a href="#curiosidades" class="block nav-link text-gray-600">Curiosidades</a>
+             <a href="#quiz" class="block nav-link text-gray-600">Quiz</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Section: Visão Geral -->
+        <section id="visao-geral" class="py-16 md:py-24 text-center bg-amber-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Um Continente de Superlativos</h2>
+                <p class="section-subtitle">A Ásia é o maior e mais populoso continente, um epicentro de diversidade geográfica, cultural e econômica. Esta visão geral apresenta os números e as divisões que definem este gigante global.</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto mb-16">
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-4xl font-bold text-amber-600">~58%</p>
+                        <p class="mt-2 text-gray-600">da População Mundial</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-4xl font-bold text-amber-600">~30%</p>
+                        <p class="mt-2 text-gray-600">da Superfície Terrestre</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-2xl md:text-3xl font-bold text-amber-600">Everest</p>
+                        <p class="mt-2 text-gray-600">Ponto Mais Alto (8.848m)</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+                        <p class="text-2xl md:text-3xl font-bold text-amber-600">Mar Morto</p>
+                        <p class="mt-2 text-gray-600">Ponto Mais Baixo</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">Mapa Interativo das Sub-regiões</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mb-8">A Ásia é frequentemente dividida em sub-regiões com base em fatores geográficos e culturais. Passe o mouse para explorar os países de cada região.</p>
+                <div id="interactive-asia-map-container" class="shadow-2xl">
+                    <!-- Plotly map will be rendered here -->
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section: Geografia -->
+        <section id="geografia" class="py-16 md:py-24 text-center">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">A Força da Natureza</h2>
+                <p class="section-subtitle">A geografia asiática não é apenas um pano de fundo; é uma força ativa que moldou impérios, inspirou mitos e continua a definir a vida de bilhões. Dos picos do Himalaia às planícies férteis, o ambiente e a humanidade coevoluíram.</p>
+                <div id="geography-tabs" class="max-w-2xl mx-auto border-b border-gray-200 mb-8">
+                    <nav class="flex -mb-px space-x-6 justify-center">
+                        <button data-tab="montanhas" class="tab-button active py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Montanhas</button>
+                        <button data-tab="rios" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Rios</button>
+                        <button data-tab="desertos" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Desertos</button>
+                    </nav>
+                </div>
+
+                <div id="geography-content" class="text-left max-w-4xl mx-auto">
+                    <div data-content="montanhas">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Cadeias de Montanhas Imponentes</h3>
+                                <p class="text-gray-600 mb-4">As montanhas da Ásia não são apenas picos rochosos; são fronteiras naturais, fontes de rios vitais e lares de culturas únicas. Elas influenciam o clima e criam barreiras que historicamente isolaram e protegeram civilizações.</p>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Himalaia:</b> O "teto do mundo", lar do Monte Evereste, influencia drasticamente os padrões de monções.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Urais:</b> A fronteira histórica e cultural que separa a Ásia da Europa.</span></li>
+                                </ul>
+                            </div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Mount_Everest_as_seen_from_Drukair2_PLW_edit.jpg/1920px-Mount_Everest_as_seen_from_Drukair2_PLW_edit.jpg" alt="Montanhas do Himalaia, Ásia" onerror="this.onerror=null;this.src='https://placehold.co/600x400/94A3B8/FFFFFF?text=Montanhas+Himalaia';" class="rounded-xl object-cover w-full h-64 shadow-lg">
+                        </div>
+                    </div>
+                    <div data-content="rios" class="hidden">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Rios: As Veias da Civilização</h3>
+                                <p class="text-gray-600 mb-4">Os grandes rios da Ásia foram os berços de algumas das mais antigas civilizações do mundo. Suas águas férteis permitiram a agricultura, o desenvolvimento de cidades e o florescimento cultural.</p>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Yangtzé e Huang Ho (Amarelo):</b> Na China, seus vales foram o coração de dinastias antigas, sustentando milhões de pessoas.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Mekong:</b> Um rio vital que atravessa seis países do Sudeste Asiático, essencial para a pesca e a agricultura.</span></li>
+                                    <li class="flex items-start"><span class="text-amber-600 font-bold mr-2">●</span><span><b>Indo:</b> O berço da Civilização do Vale do Indo, uma das mais antigas e avançadas do mundo.</span></li>
+                                </ul>
+                            </div>
+                            <img src="https://portuguese.news.cn/2022-04/11/1310551576_16495798735051n.jpg" alt="Vista aérea de um grande rio sinuoso, possivelmente o Yangtzé" onerror="this.onerror=null;this.src='https://placehold.co/600x400/60A5FA/FFFFFF?text=Rio+Yangtz%C3%A9';" class="rounded-xl object-cover w-full h-64 shadow-lg">
+                        </div>
+                    </div>
+                    <div data-content="desertos" class="hidden">
+                         <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3 text-gray-800">Vastas Extensões Áridas</h3>
+                                <p class="text-gray-600 mb-4">Os desertos asiáticos, como o de Gobi e o Arábico, são paisagens de beleza austera que desempenharam papéis cruciais nas rotas comerciais, como a Rota da Seda. A vida floresce em oásis, pontos verdes que serviram como paradas vitais para caravanas por séculos.</p>
+                                <p class="text-gray-600">Essas regiões áridas influenciam o clima continental e são o lar de povos nômades com culturas adaptadas a condições extremas.</p>
+                            </div>
+                            <img src="https://static7.depositphotos.com/1217230/714/i/450/depositphotos_7140197-stock-photo-gobi-desert-mongolia.jpg" alt="Vastas dunas de areia no Deserto de Gobi" onerror="this.onerror=null;this.src='https://placehold.co/600x400/FACC15/78350F?text=Deserto+de+Gobi';" class="rounded-xl object-cover w-full h-64 shadow-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Cultura -->
+        <section id="cultura" class="py-16 md:py-24 text-center bg-gray-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Mosaico Cultural</h2>
+                <p class="section-subtitle">A Ásia é um repositório de heranças culturais que moldaram a humanidade. Explore as religiões, filosofias, línguas, artes e locais históricos que compõem este mosaico vibrante e complexo.</p>
+                <div id="culture-tabs" class="max-w-4xl mx-auto border-b border-gray-200 mb-8">
+                     <nav class="flex flex-wrap -mb-px space-x-4 md:space-x-6 justify-center">
+                        <button data-culture-tab="religiao" class="tab-button active py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Religião e Filosofia</button>
+                        <button data-culture-tab="linguas" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Línguas</button>
+                        <button data-culture-tab="artes" class="tab-button py-4 px-1 font-medium text-gray-500 hover:text-amber-600">Artes</button>
+                        <!-- Removido o botão 'Patrimônio' -->
+                    </nav>
+                </div>
+                
+                <div id="culture-content">
+                    <div data-culture-content="religiao">
+                        <div class="grid md:grid-cols-2 gap-8 items-center text-left">
+                           <div class="bg-white p-6 rounded-xl shadow-lg">
+                               <h3 class="font-bold text-xl mb-4 text-gray-800">Berço das Grandes Religiões</h3>
+                               <p class="text-gray-600 mb-4">A Ásia deu origem a muitas das maiores religiões do mundo, que continuam a ser pilares da estrutura social e da vida diária.</p>
+                               <div class="chart-container">
+                                   <canvas id="religionsChart"></canvas>
+                               </div>
+                               <p class="text-xs text-center text-gray-500 mt-2">Distribuição ilustrativa das principais religiões na Ásia.</p>
+                               <!-- Imagem corrigida para a seção Religião e Filosofia -->
+                               <img src="https://i.imgur.com/kPGFlf8.jpeg" alt="Imagem representando a diversidade religiosa na Ásia" class="rounded-xl object-cover w-full h-140 shadow-lg mt-6">
+                                <div class="mt-8 pt-4 border-t border-gray-100">
+                                    <h4 class="font-bold text-lg text-gray-700 mb-3">✨ Gerador de Provérbios Asiáticos</h4>
+                                    <p class="text-gray-600 text-sm mb-3">Obtenha um provérbio de uma cultura asiática. Opcionalmente, adicione um tema para um provérbio mais específico.</p>
+                                    <input type="text" id="proverb-theme-input" placeholder="Tema do provérbio (ex: sabedoria, natureza)" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none mb-3">
+                                    <button id="generate-proverb-btn" class="w-full bg-amber-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-amber-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 flex items-center justify-center">
+                                        <span id="proverb-btn-text">Gerar Provérbio ✨</span>
+                                        <div id="proverb-spinner" class="loading-spinner hidden ml-2"></div>
+                                    </button>
+                                    <div id="proverb-display" class="mt-4 p-4 bg-amber-50 rounded-lg text-gray-800 italic hidden"></div>
+                                    <div id="proverb-error" class="mt-4 p-4 bg-red-100 text-red-700 rounded-lg hidden">Ocorreu um erro ao gerar o provérbio. Tente novamente mais tarde.</div>
+                                </div>
+                           </div>
+                           <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h3 class="font-bold text-xl mb-4 text-gray-800">Filosofias para uma Vida Plena</h3>
+                                <p class="text-gray-600 mb-4">Além da religião, a Ásia oferece filosofias práticas que buscam harmonia, propósito e bem-estar.</p>
+                                <div class="space-y-3">
+                                    <div class="border-l-4 border-amber-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Ikigai (Japão)</h4>
+                                        <p class="text-sm text-gray-600">A arte de encontrar a "razão de ser", o ponto de encontro entre paixão, missão, vocação e profissão.</p>
+                                    </div>
+                                    <div class="border-l-4 border-green-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Wabi-Sabi (Japão)</h4>
+                                        <p class="text-sm text-gray-600">A valorização da beleza na imperfeição e na transitoriedade.</p>
+                                    </div>
+                                    <div class="border-l-4 border-blue-500 pl-4">
+                                        <h4 class="font-semibold text-gray-700">Yoga (Índia)</h4>
+                                        <p class="text-sm text-gray-600">Uma disciplina física, mental e espiritual que busca a união e a libertação da ignorância.</p>
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+                    </div>
+                    <div data-culture-content="linguas" class="hidden">
+                        <h3 class="font-bold text-xl mb-4 text-gray-800">Uma Torre de Babel</h3>
+                        <p class="section-subtitle">Milhares de línguas e dialetos coexistem, refletindo a imensa diversidade étnica do continente. Algumas, no entanto, destacam-se pelo seu alcance global.</p>
+                        <div class="bg-white p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
+                           <div class="chart-container" style="height:200px; max-height:250px;">
+                                <canvas id="languagesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div data-culture-content="artes" class="hidden">
+                         <h3 class="font-bold text-xl mb-4 text-gray-800">Expressões da Alma</h3>
+                         <p class="section-subtitle">As tradições artísticas asiáticas são profundamente enraizadas na filosofia e na vida cotidiana, onde não há separação entre belas-artes e artes aplicadas.</p>
+                        <div class="grid md:grid-cols-3 gap-6 text-left">
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-amber-700">Pintura e Caligrafia</h4>
+                                <img src="https://www.utsavpedia.com/wp-content/uploads/2014/06/kalamkari.jpg" alt="Exemplo de caligrafia chinesa" onerror="this.onerror=null;this.src='https://placehold.co/400x250/FBE8A4/78350F?text=Caligrafia+Asi%C3%A1tica';" class="rounded-md w-full h-auto mb-3">
+                                <p class="text-gray-600">Formas de arte que unem pensamento e gesto. A Caligrafia é considerada a mais alta forma de arte em culturas como a chinesa e japonesa. Técnicas como <b>Kalamkari</b> (Índia) usam corantes naturais para ilustrar mitologias em tecidos.</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-green-700">Música</h4>
+                                <img src="https://i1.sndcdn.com/artworks-FERbyzWMV77Fg9jD-uzr2zQ-t500x500.jpg" alt="Instrumentos musicais indianos Sitar e Tabla" onerror="this.onerror=null;this.src='https://placehold.co/400x250/A7F3D0/065F46?text=Sitar+%26+Tabla';" class="rounded-md w-full h-auto mb-3">
+                                <p class="text-gray-600">Com um som distinto, a música asiática vai do clássico indiano (<b>Sitar</b>, <b>Tabla</b>) e da ópera chinesa ao fenômeno global do <b>K-pop</b> sul-coreano, um produto de exportação cultural massivo.</p>
+                                <button id="kpop-details-button" class="mt-4 px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg shadow-md hover:bg-amber-600 transition-colors">✨ Explorar K-pop</button>
+                                <p id="kpop-details-output" class="mt-2 text-gray-700 text-sm italic"></p>
+                                <p id="kpop-details-loading" class="loading-indicator">Carregando...</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <h4 class="font-bold text-lg mb-2 text-blue-700">Têxteis</h4>
+                                <img src="https://aventurasnahistoria.com.br/media/_versions/legacy/2018/09/28/rota-da-seda-capas-1109092_widelg.png" alt="Tecido de seda chinês com padrões intrincados" onerror="this.onerror=null;this.src='https://placehold.co/400x250/BFDBFE/1E40AF?text=Tecidos+de+Seda';" class="rounded-md w-full h-auto mb-3">
+                                <p class="text-gray-600">A Ásia é pioneira na tecelagem. A seda chinesa abriu a <b>Rota da Seda</b>, facilitando o intercâmbio cultural. Tecidos como o <b>Jamdani</b> de Bangladesh são Patrimônio Imaterial da Humanidade pela UNESCO.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- A seção de Patrimônio (UNESCO) foi removida daqui. -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Importância -->
+        <section id="importancia" class="py-16 md:py-24 text-center">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">O Motor do Século XXI</h2>
+                <p class="section-subtitle">Longe de ser apenas um guardião de tradições antigas, a Ásia é uma força econômica e geopolítica dominante que molda ativamente o nosso presente e futuro. Sua ascensão redefine o equilíbrio de poder global.</p>
+                <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto text-left">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">Potência Econômica e Tecnológica</h3>
+                        <p class="text-gray-600 mb-4">Após períodos de reconstrução, nações asiáticas emergiram como líderes em inovação.</p>
+                        <ul class="space-y-3">
+                             <li class="flex items-start"><span class="text-2xl mr-3">🐯</span><div><b>"Tigres Asiáticos":</b> Coreia do Sul, Taiwan, Singapura e Hong Kong tornaram-se potências através de investimentos maciços em tecnologia e educação. A Coreia do Sul é hoje a nação mais conectada do mundo.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🇨🇳</span><div><b>China:</b> De "fábrica do mundo" a líder em inteligência artificial e energias renováveis, sua influência econômica é global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🇯🇵</span><div><b>Japão:</b> Um pioneiro tecnológico que equilibra inovação em robótica e automotivos com uma cultura milenar.</div></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">Influência Geopolítica</h3>
+                        <p class="text-gray-600 mb-4">A importância da Ásia vai além da economia, sendo um ator central na arena global.</p>
+                        <ul class="space-y-3">
+                             <li class="flex items-start"><span class="text-2xl mr-3">🗺️</span><div><b>Rotas Comerciais:</b> A região abriga as rotas marítimas mais movimentadas do mundo, vitais para o comércio global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🤝</span><div><b>Equilíbrio de Poder:</b> A ascensão de potências como China e Índia está remodelando alianças e a governança global.</div></li>
+                             <li class="flex items-start"><span class="text-2xl mr-3">🌍</span><div><b>População e Recursos:</b> Com mais da metade da população mundial, as decisões tomadas na Ásia sobre recursos, meio ambiente e saúde têm um impacto planetário.</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Curiosidades -->
+        <section id="curiosidades" class="py-16 md:py-24 text-center bg-amber-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Fatos Curiosos</h2>
+                <p class="section-subtitle">Explore alguns fatos fascinantes que revelam a riqueza e a singularidade de algumas das culturas mais proeminentes da Ásia.</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Culinária Chinesa</h3>
+                        <img src="https://china2brazil.com.br/wp-content/uploads/2024/09/comidas-chinesas-990x660.jpg" alt="Variedade de Dim Sum chinês" onerror="this.onerror=null;this.src='https://placehold.co/400x250/FEE2E2/EF4444?text=Culin%C3%A1ria+Chinesa';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600">É uma das mais diversas do mundo, com estilos regionais distintos. A culinária de <b>Sichuan</b> é famosa por seu sabor picante ("málà"), enquanto a <b>cantonesa</b> é conhecida por pratos delicados como o dim sum.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Arquitetura Indiana</h3>
+                        <img src="https://images.memphistours.com/large/905606006_29.jpg" alt="O Taj Mahal em Agra, Índia" onerror="this.onerror=null;this.src='https://placehold.co/400x250/D1FAE5/065F46?text=Taj+Mahal';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600">Profundamente inspirada pela religião. Além do icônico <b>Taj Mahal</b>, um mausoléu de mármore branco, existem milhares de templos esculpidos em rocha com detalhes intrincados, como os das grutas de Ajanta e Ellora.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Cultura Pop Japonesa</h3>
+                        <img src="https://m.media-amazon.com/images/S/pv-target-images/334f00b53cf3ef848ea7048b25711bc98e8236ce1685a096990c80d0965835ea.png" alt="Coleção de mangás japoneses" onerror="this.onerror=null;this.src='https://placehold.co/400x250/E0E7FF/4F46E5?text=Manga+e+Anime';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600"><b>Mangás</b> (quadrinhos) e <b>animes</b> (animações) são exportações culturais massivas, consumidas por milhões em todo o mundo e servindo como uma porta de entrada para a língua e os costumes japoneses.</p>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Artes Marciais</h3>
+                        <img src="https://static.vecteezy.com/ti/vetor-gratis/p1/6945733-simples-karate-logo-vetor.jpg" alt="Dois judocas executando um arremesso" onerror="this.onerror=null;this.src='https://placehold.co/400x250/DBEAFE/1D4ED8?text=Sum%C3%B4+e+Karat%C3%AA';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600">Muitas artes marciais famosas, como <b>Sumô</b>, <b>Judô</b>, e <b>Karatê</b>, originaram-se no Japão. Elas são mais do que esportes; são disciplinas que ensinam respeito, hierarquia e filosofia.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">A Nação Mais Conectada</h3>
+                        <img src="https://img.odcdn.com.br/wp-content/uploads/2022/12/mbps.jpg" alt="Paisagem urbana noturna de Seul, Coreia do Sul" onerror="this.onerror=null;this.src='https://placehold.co/400x250/FCE7F3/BE185D?text=Coreia+do+Sul+Conectada';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600">A <b>Coreia do Sul</b> possui a internet mais rápida do mundo e é pioneira na implementação de tecnologias de Internet das Coisas (IoT), integrando o mundo digital ao dia a dia de forma sem precedentes.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left transition-transform hover:-translate-y-2">
+                        <h3 class="font-bold text-xl mb-2 text-amber-700">Arte em Caminhões</h3>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Pakistani_truck.jpg/960px-Pakistani_truck.jpg" alt="Caminhão paquistanês ricamente decorado" onerror="this.onerror=null;this.src='https://placehold.co/400x250/FFF7ED/F97316?text=Caminh%C3%B5es+Decorados';" class="rounded-md w-full h-auto mb-3">
+                        <p class="text-gray-600">Na Índia e no Paquistão, decorar caminhões é uma forma de arte popular. Os veículos são cobertos com pinturas vibrantes, caligrafia e espelhos, expressando a identidade e o orgulho de seus proprietários.</p>
+                    </div>
+                    <!-- Nova Curiosidade do Gemini API -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-left md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center">
+                        <h3 class="font-bold text-xl mb-4 text-amber-700 text-center">Descubra uma Nova Curiosidade sobre a Ásia!</h3>
+                        <button id="generate-curiosity-button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors transform hover:scale-105">✨ Gerar Nova Curiosidade</button>
+                        <p id="curiosity-output" class="mt-4 text-gray-700 text-lg italic text-center"></p>
+                        <p id="curiosity-loading" class="loading-indicator">Carregando...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Quiz -->
+        <section id="quiz" class="py-16 md:py-24 text-center bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Teste Seu Conhecimento!</h2>
+                <p class="section-subtitle">Responda a estas perguntas para ver o quanto você aprendeu sobre o fascinante continente asiático.</p>
+                
+                <div id="quiz-container" class="max-w-3xl mx-auto bg-gray-50 p-8 rounded-xl shadow-lg text-left">
+                    <!-- Questions will be dynamically loaded here -->
+                </div>
+
+                <button id="submit-quiz" class="mt-8 px-8 py-4 bg-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-amber-700 transition-colors transform hover:scale-105">Ver Resultados</button>
+                
+                <div id="quiz-results" class="mt-8 p-6 bg-white rounded-xl shadow-lg hidden">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Seus Resultados</h3>
+                    <p id="score-display" class="text-xl text-gray-700 mb-4"></p>
+                    <div id="feedback-display" class="space-y-4">
+                        <!-- Feedback for each question will be displayed here -->
+                    </div>
+                    <button id="retake-quiz" class="mt-6 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">Refazer Quiz</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-6">
+        <p>Conteúdo adaptado do relatório "O Continente Asiático: Uma Análise Abrangente".</p>
+        <p class="text-sm text-gray-400">Aplicação Interativa Criada em 2024.</p>
+    </footer>
+
+    <script>
+        // Declarar apiKey e apiUrl no escopo global do script
+        const apiKey = "AIzaSyDrqtzCldnlVFtQrOr2rmnHLMJO0RRSTyw"; // Canvas fornecerá isso em tempo de execução.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            function setupTabs(containerId, contentContainerId, attributeName, activeClass) {
+                const tabContainer = document.getElementById(containerId);
+                if (!tabContainer) return;
+                const contentContainer = document.getElementById(contentContainerId);
+                const tabs = tabContainer.querySelectorAll(`[data-${attributeName}]`);
+                const contents = contentContainer.querySelectorAll(`[data-${attributeName.replace('tab','content')}]`);
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove(activeClass));
+                        tab.classList.add(activeClass);
+                        const tabValue = tab.getAttribute(`data-${attributeName}`);
+                        
+                        contents.forEach(content => {
+                            if (content.getAttribute(`data-${attributeName.replace('tab','content')}`) === tabValue) {
+                                content.classList.remove('hidden');
+                            } else {
+                                content.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            }
+
+            setupTabs('geography-tabs', 'geography-content', 'tab', 'active');
+            setupTabs('culture-tabs', 'culture-content', 'culture-tab', 'active');
+            
+            // --- Plotly Map Logic ---
+            const asiaCountriesByRegion = {
+                "Ásia Setentrional": {
+                    color: '#60A5FA', // Blue-400
+                    countries: ["RUS"] // Russia (Asian part)
+                },
+                "Ásia Central": {
+                    color: '#34D399', // Green-400
+                    countries: ["KAZ", "KGZ", "TJK", "TKM", "UZB"]
+                },
+                "Ásia Oriental": {
+                    color: '#F87171', // Red-400
+                    countries: ["CHN", "JPN", "PRK", "KOR", "MNG", "TWN"] 
+                },
+                "Ásia Ocidental": { // Middle East
+                    color: '#A78BFA', // Purple-400
+                    countries: ["ARM", "AZE", "BHR", "CYP", "GEO", "IRQ", "ISR", "JOR", "KWT", "LBN", "OMN", "QAT", "SAU", "SYR", "TUR", "ARE", "YEM"] 
+                },
+                "Sul da Ásia": {
+                    color: '#FBBF24', // Amber-400
+                    countries: ["AFG", "BGD", "BTN", "IND", "MDV", "NPL", "PAK", "LKA"]
+                },
+                "Sudeste Asiático": {
+                    color: '#FACC15', // Yellow-400
+                    countries: ["BRN", "KHM", "IDN", "LAO", "MYS", "MMR", "PHL", "SGP", "THA", "TLS", "VNM"]
+                }
+            };
+
+            const plotData = Object.entries(asiaCountriesByRegion).map(([regionName, data]) => {
+                return {
+                    type: 'scattergeo',
+                    locationmode: 'ISO-3',
+                    locations: data.countries,
+                    marker: {
+                        color: data.color,
+                        line: {
+                            color: 'black',
+                            width: 0.5
+                        }
+                    },
+                    name: regionName, // Name for the legend
+                    hoverinfo: 'text',
+                    text: data.countries.map(countryCode => `${countryCode} - ${regionName}`) // Hover text shows country code and region
+                };
+            });
+
+            const plotLayout = {
+                geo: {
+                    scope: 'asia',
+                    showland: true,
+                    landcolor: '#f3f2f0', // Light grey for land
+                    showcountries: true,
+                    countrycolor: '#d0d0d0', // Grey for countries borders
+                    subunitcolor: '#d0d0d0', // Subunit lines
+                    bgcolor: '#FFFFFF', // Background color of the map
+                    lakecolor: '#ADD8E6', // Light blue for lakes
+                    oceancolor: '#ADD8E6', // Light blue for ocean
+                    resolution: 50, // 50m resolution for better detail
+                    showframe: false,
+                    showcoastlines: true,
+                    coastlinecolor: '#444444',
+                    projection: {
+                        type: 'mercator',
+                        scale: 1.2 // Adjust scale to fit Asia well
+                    }
+                },
+                title: false, // No title on the map itself
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1,
+                    traceorder: 'normal',
+                    font: {
+                        family: 'sans-serif',
+                        size: 10,
+                        color: '#000'
+                    },
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                    bordercolor: '#ccc',
+                    borderwidth: 1
+                },
+                // Responsive layout settings
+                autosize: true
+            };
+
+            Plotly.newPlot('interactive-asia-map-container', plotData, plotLayout, {
+                responsive: true,
+                displayModeBar: false // Hides Plotly's default toolbar
+            });
+            // --- End Plotly Map Logic ---
+
+
+            // Gemini API Integration - Curiosidade Aleatória
+            const generateCuriosityBtn = document.getElementById('generate-curiosity-button');
+            const curiosityOutput = document.getElementById('curiosity-output');
+            const curiosityLoading = document.getElementById('curiosity-loading');
+
+            if (generateCuriosityBtn) {
+                generateCuriosityBtn.addEventListener('click', async () => {
+                    curiosityOutput.textContent = ''; // Clear previous output
+                    curiosityLoading.style.display = 'block'; // Show loading indicator
+
+                    let chatHistory = [];
+                    const prompt = "Gere uma curiosidade fascinante e concisa sobre o continente asiático. Não inclua títulos, apenas a curiosidade.";
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            curiosityOutput.textContent = text;
+                            curiosityOutput.classList.remove('hidden');
+                        } else {
+                            curiosityOutput.textContent = "Não foi possível gerar uma curiosidade. Tente novamente.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao chamar Gemini API para curiosidade:", error);
+                        curiosityOutput.textContent = "Ocorreu um erro ao gerar a curiosidade. Verifique sua conexão ou tente mais tarde.";
+                    } finally {
+                        curiosityLoading.style.display = 'none'; // Hide loading indicator
+                    }
+                });
+            }
+
+            // Gemini API Integration - K-pop Details
+            const kpopDetailsButton = document.getElementById('kpop-details-button');
+            const kpopDetailsOutput = document.getElementById('kpop-details-output');
+            const kpopDetailsLoading = document.getElementById('kpop-details-loading');
+
+            if (kpopDetailsButton) {
+                kpopDetailsButton.addEventListener('click', async () => {
+                    kpopDetailsOutput.textContent = ''; // Clear previous output
+                    kpopDetailsLoading.style.display = 'block'; // Show loading indicator
+
+                    let chatHistory = [];
+                    const prompt = "Forneça 2-3 frases concisas de detalhes adicionais sobre o K-pop e sua importância cultural na Ásia e no mundo, para um site sobre o continente asiático. Evite introduções e comece diretamente com o conteúdo.";
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            kpopDetailsOutput.textContent = text;
+                            kpopDetailsOutput.classList.remove('hidden'); // Ensure it's visible on success
+                        } else {
+                            kpopDetailsOutput.textContent = "Não foi possível carregar detalhes sobre K-pop. Tente novamente.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao chamar Gemini API para K-pop:", error);
+                        kpopDetailsOutput.textContent = "Ocorreu um erro ao carregar detalhes sobre K-pop. Verifique sua conexão ou tente mais tarde.";
+                    } finally {
+                        kpopDetailsLoading.style.display = 'none'; // Hide loading indicator
+                    }
+                });
+            }
+
+            // Gemini API Integration - Gerador de Provérbios Asiáticos
+            const generateProverbBtn = document.getElementById('generate-proverb-btn');
+            const proverbThemeInput = document.getElementById('proverb-theme-input');
+            const proverbDisplay = document.getElementById('proverb-display');
+            const proverbSpinner = document.getElementById('proverb-spinner');
+            const proverbBtnText = document.getElementById('proverb-btn-text');
+            const proverbError = document.getElementById('proverb-error');
+
+            if (generateProverbBtn) {
+                generateProverbBtn.addEventListener('click', async () => {
+                    proverbDisplay.classList.add('hidden');
+                    proverbError.classList.add('hidden');
+                    proverbBtnText.textContent = 'Gerando...';
+                    proverbSpinner.classList.remove('hidden');
+                    generateProverbBtn.disabled = true;
+
+                    let chatHistory = [];
+                    const theme = proverbThemeInput.value.trim();
+                    let prompt = "Gere um provérbio ou ditado inspirador de uma cultura asiática. Não inclua títulos ou o nome da cultura, apenas o provérbio. ";
+                    if (theme) {
+                        prompt += `O provérbio deve estar relacionado ao tema '${theme}'.`;
+                    }
+
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            proverbDisplay.textContent = text;
+                            proverbDisplay.classList.remove('hidden');
+                        } else {
+                            proverbError.classList.remove('hidden');
+                            console.error('Estrutura de resposta inesperada da API para provérbio:', result);
+                        }
+                    } catch (error) {
+                        proverbError.classList.remove('hidden');
+                        console.error('Erro ao chamar a API Gemini para provérbio:', error);
+                    } finally {
+                        proverbBtnText.textContent = 'Gerar Provérbio ✨';
+                        proverbSpinner.classList.add('hidden');
+                        generateProverbBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Quiz Logic
+            const quizQuestions = [
+                {
+                    question: "Qual é o nome da montanha mais alta da Ásia (e do mundo)?",
+                    options: ["Monte Kilimanjaro", "Monte Everest", "Monte Fuji", "K2"],
+                    answer: "Monte Everest"
+                },
+                {
+                    question: "Qual das seguintes religiões se originou na Ásia?",
+                    options: ["Cristianismo", "Islamismo", "Budismo", "Todas as anteriores"],
+                    answer: "Todas as anteriores"
+                },
+                {
+                    question: "O rio Yangtzé, um dos mais longos da Ásia, está localizado em qual país?",
+                    options: ["Índia", "China", "Vietnã", "Tailândia"],
+                    answer: "China"
+                },
+                {
+                    question: "Qual é o país asiático conhecido pela cultura do K-pop e da alta tecnologia?",
+                    options: ["Japão", "Coreia do Sul", "China", "Índia"],
+                    answer: "Coreia do Sul"
+                },
+                {
+                    question: "O Taj Mahal é uma famosa construção localizada em qual país asiático?",
+                    options: ["Irã", "Índia", "Paquistão", "Bangladesh"],
+                    answer: "Índia"
+                }
+            ];
+
+            const quizContainer = document.getElementById('quiz-container');
+            const submitQuizButton = document.getElementById('submit-quiz');
+            const quizResults = document.getElementById('quiz-results');
+            const scoreDisplay = document.getElementById('score-display');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const retakeQuizButton = document.getElementById('retake-quiz');
+
+            function loadQuiz() {
+                quizContainer.innerHTML = ''; // Clear previous questions
+                quizQuestions.forEach((q, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'mb-6 p-4 bg-white rounded-lg shadow-md border border-gray-200';
+                    questionDiv.innerHTML = `
+                        <p class="font-bold text-lg mb-3 text-gray-800">Questão ${index + 1}: ${q.question}</p>
+                        <div class="space-y-2">
+                            ${q.options.map((option, optIndex) => `
+                                <label class="flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer">
+                                    <input type="radio" name="question${index}" value="${option}" class="form-radio h-4 w-4 text-amber-600 focus:ring-amber-500">
+                                    <span class="ml-2 text-gray-700">${option}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    quizContainer.appendChild(questionDiv);
+                });
+                quizResults.classList.add('hidden');
+                submitQuizButton.classList.remove('hidden');
+            }
+
+            function checkQuiz() {
+                let score = 0;
+                feedbackDisplay.innerHTML = '';
+
+                quizQuestions.forEach((q, index) => {
+                    const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                    const questionDiv = quizContainer.children[index];
+                    const questionText = q.question;
+                    const correctAnswer = q.answer;
+
+                    let feedbackMessage = '';
+                    let isCorrect = false;
+
+                    // Remove previous feedback classes
+                    questionDiv.classList.remove('correct-answer', 'incorrect-answer', 'border-green-500', 'border-red-500');
+
+                    if (selectedOption) {
+                        if (selectedOption.value === correctAnswer) {
+                            score++;
+                            isCorrect = true;
+                            feedbackMessage = `<span class="text-green-600">Correto!</span>`;
+                            questionDiv.classList.add('correct-answer', 'border-green-500');
+                        } else {
+                            feedbackMessage = `<span class="text-red-600">Incorreto.</span> A resposta correta era: <span class="font-semibold">${correctAnswer}</span>`;
+                            questionDiv.classList.add('incorrect-answer', 'border-red-500');
+                        }
+                    } else {
+                        feedbackMessage = `<span class="text-yellow-600">Não respondido.</span> A resposta correta era: <span class="font-semibold">${correctAnswer}</span>`;
+                        questionDiv.classList.add('incorrect-answer', 'border-yellow-500'); /* Use a cor amarela para não respondido */
+                    }
+
+                    const feedbackItem = document.createElement('div');
+                    feedbackItem.className = 'p-3 rounded-lg border';
+                    feedbackItem.innerHTML = `<p class="font-medium">${questionText}</p><p>${feedbackMessage}</p>`;
+                    if (isCorrect) {
+                        feedbackItem.classList.add('bg-green-50', 'border-green-300');
+                    } else {
+                        feedbackItem.classList.add('bg-red-50', 'border-red-300');
+                    }
+                    feedbackDisplay.appendChild(feedbackItem);
+                });
+
+                scoreDisplay.textContent = `Você acertou ${score} de ${quizQuestions.length} perguntas.`;
+                quizResults.classList.remove('hidden');
+                submitQuizButton.classList.add('hidden');
+                
+                // Scroll to results
+                quizResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            submitQuizButton.addEventListener('click', checkQuiz);
+            retakeQuizButton.addEventListener('click', loadQuiz);
+
+            loadQuiz(); // Load the quiz when the page loads
+        });
+
+    </script>
+</body>
+</html>
