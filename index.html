@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Novo Relato - Pero Vaz de Caminha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Paleta de Cores: 
+           Fundo: Pergaminho (#f4ecd8)
+           Azul Azulejo: #004aad
+           Vermelho Colonial: #8b1c1c
+           Texto Tinta: #2c241b
+        */
+        body { 
+            font-family: 'Lora', serif; 
+            background-color: #eaddc5; /* Cor de papel envelhecido */
+            background-image: radial-gradient(#f4ecd8 60%, #eaddc5 100%);
+            margin: 0; 
+            padding: 0; 
+            color: #2c241b; 
+        }
+        
+        /* Cabeçalho estilo Azulejo Português misturado com Ouro */
+        header { 
+            background-color: #004aad; 
+            background-image: repeating-linear-gradient(45deg, #004aad 25%, transparent 25%, transparent 75%, #004aad 75%, #004aad), repeating-linear-gradient(45deg, #004aad 25%, #003380 25%, #003380 75%, #004aad 75%, #004aad);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+            color: #fdfbf7; 
+            text-align: center; 
+            padding: 4rem 1rem; 
+            border-bottom: 8px solid #d4af37; /* Borda dourada */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        header h1 { 
+            font-family: 'Cinzel', serif; 
+            margin: 0; 
+            font-size: 3.5rem; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        header p { 
+            font-style: italic; 
+            font-size: 1.3rem; 
+            margin-top: 10px; 
+            color: #eaddc5;
+        }
+
+        .container { 
+            max-width: 900px; 
+            margin: 3rem auto; 
+            padding: 0 1rem; 
+        }
+
+        /* Estilo das Postagens (Folhas de papel) */
+        article { 
+            background: #fdfbf7; 
+            padding: 3rem; 
+            margin-bottom: 3rem;
+            border-radius: 4px; 
+            box-shadow: 2px 4px 15px rgba(0,0,0,0.1); 
+            position: relative;
+            border: 1px solid #dcd3b6;
+        }
+
+        /* Linha decorativa no topo e embaixo de cada post */
+        article::before, article::after {
+            content: '';
+            display: block;
+            height: 4px;
+            border-top: 1px solid #8b1c1c;
+            border-bottom: 1px solid #8b1c1c;
+            margin: 10px 0;
+        }
+
+        .post-title { 
+            font-family: 'Cinzel', serif; 
+            color: #8b1c1c; /* Vermelho Pau-Brasil */
+            margin-top: 1rem; 
+            font-size: 2.2rem; 
+            text-align: center;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border: 4px solid #eaddc5;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            filter: sepia(30%) contrast(110%); /* Dá um leve tom envelhecido na foto */
+        }
+
+        /* Letra Capitular (A primeira letra do texto bem grande) */
+        .post-content p:first-of-type::first-letter {
+            float: left;
+            font-family: 'Cinzel', serif;
+            font-size: 4.5em;
+            line-height: 0.8;
+            padding-top: 4px;
+            padding-right: 8px;
+            padding-left: 3px;
+            color: #004aad;
+        }
+
+        .post-content p { 
+            line-height: 1.9; 
+            font-size: 1.15rem; 
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .footer { 
+            text-align: center; 
+            padding: 3rem; 
+            color: #fdfbf7; 
+            background-color: #2c241b;
+            font-family: 'Cinzel', serif;
+            border-top: 5px solid #8b1c1c;
+        }
+
+        /* Responsividade para celular */
+        @media (max-width: 600px) {
+            header h1 { font-size: 2.5rem; }
+            article { padding: 1.5rem; }
+            .post-title { font-size: 1.8rem; }
+            .post-image { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>O Novo Relato</h1>
+    <p>As impressões de Pero Vaz de Caminha sobre as terras de Santa Cruz no Século XXI</p>
+</header>
+
+<div class="container">
+    
+    <article>
+        <h2 class="post-title">🌴 Primeiras impressões do Brasil moderno</h2>
+        <img src="https://www.rfsengenharia.com.br/wp-content/uploads/2024/11/geotecnia.jpg" alt="Vista aérea de cidade grande misturada com praia" class="post-image">
+        <div class="post-content">
+            <p>Hoje cheguei novamente ao Brasil, terra que conheci há muitos séculos. Antes, quando escrevi sobre ela, vi apenas florestas, praias e uma natureza abundante.</p>
+            <p>Agora, ao observar o país do alto, percebo algo muito diferente: grandes cidades, prédios altos e estradas que cruzam todo o território. Mesmo com tantas mudanças, continuo impressionado com a beleza natural deste lugar.</p>
+            <p>As praias ainda são claras e extensas, e o mar continua convidativo para qualquer viajante. Este país cresceu, se modernizou e se tornou um dos mais diversos do mundo. No entanto, percebo que junto com o crescimento surgiram também desafios, principalmente para proteger sua natureza.</p>
+        </div>
+    </article>
+
+    <article>
+        <h2 class="post-title">🌳 A imensidão da floresta brasileira</h2>
+        <img src="https://pensaragro.com.br/wp-content/uploads/2025/09/amazonia.jpg" alt="Floresta amazônica vista de cima com rio" class="post-image">
+        <div class="post-content">
+            <p>Durante minha viagem, ouvi muito falar sobre a gigantesca floresta chamada Amazônia. Dizem que ela é a maior floresta tropical do planeta e abriga milhares de espécies de plantas e animais. Ao visitá-la, compreendi por que ela é considerada tão importante para o equilíbrio do clima da Terra.</p>
+            <p>Porém, também soube que parte dessa floresta tem sido destruída ao longo dos anos. Isso preocupa muitos brasileiros, que hoje lutam para preservar essa riqueza natural.</p>
+            <p>Se no passado eu descrevi uma terra cheia de árvores infinitas, hoje percebo que cuidar dessas florestas é uma responsabilidade urgente.</p>
+        </div>
+    </article>
+
+    <article>
+        <h2 class="post-title">🌊 As praias que encantam viajantes</h2>
+        <img src="https://happytraveling.com.br/wp-content/uploads/2024/05/foto_apoio_Trancoso_PraiaDosCoqueiros.jpg" alt="Praia paradisíaca com coqueiros e pessoas" class="post-image">
+        <div class="post-content">
+            <p>Uma das coisas que mais me impressionou ao retornar ao Brasil foram suas praias. Ao longo da costa, encontrei paisagens magníficas: areia branca, coqueiros e águas cristalinas. Muitos turistas do mundo inteiro visitam essas regiões para descansar e admirar a natureza.</p>
+            <p>Em várias cidades litorâneas, a praia se mistura com a vida urbana: restaurantes, ciclovias e pessoas praticando esportes ao ar livre.</p>
+            <p>Mesmo com o avanço das cidades, essas paisagens continuam sendo um dos maiores tesouros naturais do país.</p>
+        </div>
+    </article>
+
+    <article>
+        <h2 class="post-title">🌎 A diversidade do povo brasileiro</h2>
+        <img src="https://midia.frm.org.br/drupal/public/styles/imagem_paragraph_foto_webp/public/media/image/2023-10/3%20Lugar%20Tayna%20Mendes.png.webp?VersionId=jTnP2jz0kS11gY23XKgtafOLD1ZsUm4o&itok=lsHZmn1n" alt="Pessoas de diferentes origens em festival cultural" class="post-image">
+        <div class="post-content">
+            <p>Outro aspecto que me surpreendeu profundamente foi a diversidade do povo brasileiro. Aqui convivem pessoas de muitas origens diferentes: indígenas, europeus, africanos e povos de diversas partes do mundo. Essa mistura criou uma cultura muito rica, cheia de músicas, comidas e tradições diferentes.</p>
+            <p>Em cada cidade que visitei, encontrei algo novo: festivais, danças, culinárias variadas e um povo extremamente acolhedor. Se antes eu escrevi sobre uma terra recém-descoberta, hoje vejo um país cheio de histórias, culturas e identidades.</p>
+        </div>
+    </article>
+
+    <article>
+        <h2 class="post-title">🌿 A natureza que precisa ser protegida</h2>
+        <img src="https://blogambiental.com.br/wp-content/uploads/2025/03/Blog-Ambiental-%E2%80%A2-Reflorestamento-Restaurando-a-Natureza-Uma-Arvore-por-Vez.jpg" alt="Floresta preservada e plantio de árvores" class="post-image">
+        <div class="post-content">
+            <p>Durante minhas observações pelo Brasil moderno, percebi que muitas pessoas estão preocupadas com a preservação do meio ambiente. Biomas importantes, como a Mata Atlântica, já perderam grande parte de sua vegetação original. Ainda assim, existem projetos e movimentos que buscam recuperar áreas naturais e proteger espécies ameaçadas.</p>
+            <p>Isso mostra que muitos brasileiros compreenderam algo essencial: preservar a natureza é garantir o futuro do país.</p>
+            <p>Espero que as próximas gerações possam continuar admirando as florestas, rios e praias que tornam esta terra tão especial.</p>
+        </div>
+    </article>
+
+</div>
+
+<footer class="footer">
+    <p>Escrito no ano da graça de 2026.</p>
+    <p style="color: #d4af37; font-size: 0.9rem; margin-top: 10px;">Projeto Escolar - ETE Jurandir Bezerra Lins</p>
+</footer>
+
+</body>
+</html>
